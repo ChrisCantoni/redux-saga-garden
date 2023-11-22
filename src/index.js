@@ -49,7 +49,7 @@ function* addPlant(action) {
 function* deletePlant(action) {
   try {
     yield axios.delete(`/api/plant/${action.payload}`)
-    yield put({type: 'DELETE_PLANT'})
+    yield put({type: 'FETCH_PLANTS'})
 
   } catch (error) {
     console.log('Error with delete', error)
