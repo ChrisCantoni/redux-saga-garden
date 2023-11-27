@@ -7,6 +7,7 @@ import axios from 'axios';
 import { Provider } from 'react-redux';
 import logger from 'redux-logger';
 
+
 import App from './App';
 
 // this startingPlantArray should eventually be removed
@@ -15,6 +16,15 @@ import App from './App';
 //   { id: 2, name: 'Tulip' },
 //   { id: 3, name: 'Oak' }
 // ];
+
+const plantDetails = (state = [], action) => {
+  switch (action.type) {
+    case 'PLANT_DETAILS':
+      return action.payload;
+    default:
+      return state;
+  }
+}
 
 const plantList = (state = [], action) => {
   switch (action.type) {
@@ -57,19 +67,36 @@ function* deletePlant(action) {
   }
 }
 
+function* fetchPlantDetails(info) {
+  console.log('payload is', info.payload.id);
+  try {
+    const id = info.payload.id;
+    const response = yield axios.get(`/api/plant/details/${id}`)
+    const action = {type: 'PLANT_DETAILS', payload: response.data}
+    console.log(action);
+// Dispatch the info we get back to the page into Details reducer.
+    yield put(action);
+  } catch (error) {
+    console.log('Error with details', error)
+    alert('Something went wrong!');
+  }
+}
+
 
 
 function* rootSaga() {
   yield takeEvery('FETCH_PLANTS', fetchPlants);
   yield takeEvery('ADD_PLANT', addPlant);
   yield takeEvery('DELETE_PLANT', deletePlant);
+  yield takeEvery('PLANT_DETAILS', fetchPlantDetails);
 }
 
 const sagaMiddleware = createSagaMiddleware();
 
 const store = createStore(
   combineReducers({ 
-    plantList 
+    plantList,
+    plantDetails, 
   }),
   applyMiddleware(sagaMiddleware, logger),
 );
@@ -81,8 +108,10 @@ sagaMiddleware.run(rootSaga);
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
+    
     <Provider store={store}>
       <App />
     </Provider>
+    
   </React.StrictMode>
 );
